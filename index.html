@@ -235,7 +235,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/12/07/%E5%9B%BD%E5%9F%8E%E6%9D%AF2024wp/" target="_self">
         <div>
-          web调查问卷填问卷即得flag pwnAlpha_Shell禁用了一大串系统调用，拿shell肯定是别想了，只能走orw。但是传统的orw路线给ban了，尝试pwrite时报了段错误，无奈只能走openat+sendfile。另外此题还限制了可见字符shellcode，需要用alpha3生成。 123456789101112131415161718192021222324252627282930
+          web调查问卷填问卷即得flag pwnAlpha_Shell禁用了一大串系统调用，拿shell肯定是别想了，只能走orw。但是传统的orw路线给ban了，只能走openat+sendfile。    注意，使用pwrite是不行的，pwrite过程会调用write函数，会导致系统调用无法执行。详见源码：https://elixir.bootlin.com/glibc/glibc-2.35/sou
         </div>
       </a>
 
